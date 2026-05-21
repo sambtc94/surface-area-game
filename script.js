@@ -125,6 +125,10 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function calculateLevel(totalPoints) {
+  return Math.floor(totalPoints / LEVEL_POINT_STEP) + 1;
+}
+
 function nextQuestion() {
   if (shapes.length === 0) {
     title.textContent = "Question unavailable";
@@ -226,7 +230,7 @@ function checkAnswer() {
     const pointsEarned = basePoints + streakBonus;
     points += pointsEarned;
     coins += coinsEarned;
-    level = Math.floor(points / LEVEL_POINT_STEP) + 1;
+    level = calculateLevel(points);
     feedback.textContent = `Correct! ${currentQuestion.answer} cm² is right.`;
     feedback.className = "feedback good";
     showRewardMessage(`Reward +${pointsEarned} points, +${coinsEarned} coins!`);
