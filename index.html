@@ -37,6 +37,29 @@
     </div>
   </div>
 
+  <!-- Game Over Screen -->
+  <div id="game-over-screen" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Game over">
+    <div class="overlay-card gameover-card">
+      <div class="overlay-icon">💀</div>
+      <h2 class="overlay-title">Game Over</h2>
+      <p class="overlay-subtitle">Your hero has fallen in battle.</p>
+      <div class="overlay-stats" id="gameover-stats"></div>
+      <button id="gameover-play-again" type="button" class="start-quest-btn">🔄 Play Again</button>
+    </div>
+  </div>
+
+  <!-- Victory Screen -->
+  <div id="victory-screen" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Victory">
+    <div class="overlay-card victory-card">
+      <div class="overlay-icon">🎉</div>
+      <h2 class="overlay-title victory-title">Map Cleared!</h2>
+      <p class="overlay-subtitle">All enemies have been defeated!</p>
+      <p id="victory-bonus-msg" class="victory-bonus"></p>
+      <div class="overlay-stats" id="victory-stats"></div>
+      <button id="victory-play-again" type="button" class="start-quest-btn">🔄 Play Again</button>
+    </div>
+  </div>
+
   <!-- Main Game -->
   <main class="container" id="game-main" aria-hidden="true">
 
@@ -104,7 +127,7 @@
         </div>
         <button id="move-down" type="button">⬇️ Down</button>
       </div>
-      <p class="map-legend">Legend: <strong>🧙 You</strong> • <strong>👾 Enemy</strong> • <strong>🧪 Potion</strong> • <strong>💀 Defeated</strong> • Use arrow keys or buttons to move.</p>
+      <p class="map-legend">Legend: <strong>🧙 You</strong> • <strong>👾 Enemy</strong> • <strong class="boss-legend">👾👾 Boss (×2 pts)</strong> • <strong>🧪 Potion</strong> • <strong>💀 Defeated</strong> • Use arrow keys or buttons to move.</p>
     </section>
 
     <section class="scoreboard card">
