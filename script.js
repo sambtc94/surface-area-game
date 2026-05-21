@@ -14,6 +14,10 @@ const COINS_WITH_HINT = 1;
 const COINS_WITHOUT_HINT = 3;
 const MAP_SIZE = 7;
 const ENEMY_COUNT = 6;
+const BOSS_ENEMY_COUNT = 2;
+const BOSS_POINT_MULTIPLIER = 2;
+const MAP_CLEARED_BONUS_POINTS = 500;
+const MAP_CLEARED_BONUS_COINS = 10;
 const POTION_COUNT = 5;
 const MAX_HEALTH = 100;
 const POTION_HEAL_AMOUNT = 30;
@@ -209,8 +213,34 @@ const shapes = [
   },
 ];
 
+function buildCompositeQuestion() {
+  const idx1 = randomInt(0, shapes.length - 1);
+  let idx2;
+  do {
+    idx2 = randomInt(0, shapes.length - 1);
+  } while (idx2 === idx1);
+
+  const shape1 = shapes[idx1];
+  const shape2 = shapes[idx2];
+  const q1 = shape1.buildQuestion();
+  const q2 = shape2.buildQuestion();
+  const totalAnswer = Number((q1.answer + q2.answer).toFixed(1));
+
+  const diag1 = q1.diagram || `<p>${q1.prompt}</p>`;
+  const diag2 = q2.diagram || `<p>${q2.prompt}</p>`;
+  const combinedDiagram = `<div class="composite-diagrams"><div class="composite-part"><strong>Shape 1: ${shape1.name}</strong>${diag1}</div><div class="composite-part"><strong>Shape 2: ${shape2.name}</strong>${diag2}</div></div>`;
+
+  return {
+    shapeName: `${shape1.name} & ${shape2.name}`,
+    prompt: `Boss challenge! Find the COMBINED total surface area of both shapes shown. Give your answer to 1 decimal place.`,
+    formula: `[Shape 1] ${q1.formula}  •  [Shape 2] ${q2.formula}`,
+    answer: totalAnswer,
+    worked: `Shape 1 (${shape1.name}): ${q1.worked}  |  Shape 2 (${shape2.name}): ${q2.worked}  |  Combined = ${q1.answer} + ${q2.answer} = ${totalAnswer} cm²`,
+    diagram: combinedDiagram,
+  };
+}
+
 const fallbackQuestion = {
-  shapeName: "Cube",
   prompt: "A cube has side length 5 cm. Find its total surface area.",
   formula: "Surface area of a cube = 6s²",
   answer: 150,
@@ -263,6 +293,15 @@ const moveUpBtn = document.getElementById("move-up");
 const moveDownBtn = document.getElementById("move-down");
 const moveLeftBtn = document.getElementById("move-left");
 const moveRightBtn = document.getElementById("move-right");
+
+const gameOverScreenEl = document.getElementById("game-over-screen");
+const gameOverStatsEl = document.getElementById("gameover-stats");
+const gameOverPlayAgainBtn = document.getElementById("gameover-play-again");
+
+const victoryScreenEl = document.getElementById("victory-screen");
+const victoryBonusMsgEl = document.getElementById("victory-bonus-msg");
+const victoryStatsEl = document.getElementById("victory-stats");
+const victoryPlayAgainBtn = document.getElementById("victory-play-again");
 
 let currentQuestion;
 let currentEnemy = null;
@@ -391,12 +430,14 @@ function initializeMap() {
 
   enemies = Array.from({ length: ENEMY_COUNT }, (_, index) => {
     const cell = randomUnusedCell(used);
+    const isBoss = index < BOSS_ENEMY_COUNT;
     return {
       id: index + 1,
       x: cell.x,
       y: cell.y,
       defeated: false,
-      name: `Enemy ${index + 1}`,
+      isBoss,
+      name: isBoss ? `Boss ${index + 1}` : `Enemy ${index + 1 - BOSS_ENEMY_COUNT}`,
     };
   });
 
@@ -426,6 +467,9 @@ function renderMap() {
       } else if (enemy && enemy.defeated) {
         cell.classList.add("defeated");
         cell.textContent = "💀";
+      } else if (enemy && enemy.isBoss) {
+        cell.classList.add("enemy", "boss");
+        cell.innerHTML = '<span class="boss-icons"><span>👾</span><span>👾</span></span>';
       } else if (enemy) {
         cell.classList.add("enemy");
         cell.textContent = "👾";
@@ -467,14 +511,24 @@ function getRandomQuestion() {
   }
 }
 
+function getBossQuestion() {
+  try {
+    return buildCompositeQuestion();
+  } catch (error) {
+    console.warn("Composite question generation failed, using regular question.", error);
+    return getRandomQuestion();
+  }
+}
+
 function startEncounter(enemy) {
   currentEnemy = enemy;
   questNumber += 1;
-  currentQuestion = getRandomQuestion();
+  currentQuestion = enemy.isBoss ? getBossQuestion() : getRandomQuestion();
   hintShown = false;
 
-  title.textContent = `${enemy.name} • ${currentQuestion.shapeName}`;
-  shapeIconEl.textContent = SHAPE_ICONS[currentQuestion.shapeName] || "📐";
+  const enemyLabel = enemy.isBoss ? `👾👾 ${enemy.name}` : enemy.name;
+  title.textContent = `${enemyLabel} • ${currentQuestion.shapeName}`;
+  shapeIconEl.textContent = enemy.isBoss ? "👾" : (SHAPE_ICONS[currentQuestion.shapeName] || "📐");
   questNumberEl.textContent = `#${questNumber}`;
   questionText.textContent = currentQuestion.prompt;
   formulaText.textContent = currentQuestion.formula;
@@ -482,7 +536,9 @@ function startEncounter(enemy) {
   workedSolution.textContent = currentQuestion.worked;
   answerInput.value = "";
   answerInput.focus();
-  feedback.textContent = "Defeat this enemy by solving the puzzle.";
+  feedback.textContent = enemy.isBoss
+    ? "⚠️ Boss enemy! Solve the composite challenge for DOUBLE points."
+    : "Defeat this enemy by solving the puzzle.";
   feedback.className = "feedback";
   hintBtn.textContent = "Show formula hint";
 
@@ -494,7 +550,9 @@ function startEncounter(enemy) {
     diagramContent.innerHTML = "";
   }
 
-  mapStatusEl.textContent = `${enemy.name} encountered! Solve correctly to win.`;
+  mapStatusEl.textContent = enemy.isBoss
+    ? `👾👾 ${enemy.name} encountered! Boss battle — double points await!`
+    : `${enemy.name} encountered! Solve correctly to win.`;
   updateControlStates();
 }
 
@@ -504,16 +562,51 @@ function triggerGameOver() {
   currentQuestion = null;
   title.textContent = "💀 Game Over";
   shapeIconEl.textContent = "💀";
-  questionText.textContent = "Your health hit zero. Refresh the page to start a new run.";
+  questionText.textContent = "Your health hit zero. Use Play Again to start a new run.";
   formulaText.textContent = "";
   formulaText.classList.add("hidden");
   workedSolution.textContent = "";
   diagramWrap.classList.add("hidden");
   diagramContent.innerHTML = "";
   mapStatusEl.textContent = "Game over — your hero has fallen.";
-  showRewardMessage("Game over! Defeat enemies faster and collect potions next run.");
+
+  const defeated = enemies.filter((e) => e.defeated).length;
+  const accuracy = attempted === 0 ? 0 : Math.round((correct / attempted) * 100);
+  gameOverStatsEl.innerHTML = `
+    <p>⚡ Level reached: <strong>${level}</strong></p>
+    <p>🪙 Coins earned: <strong>${coins}</strong></p>
+    <p>💥 Points: <strong>${points}</strong></p>
+    <p>👾 Enemies defeated: <strong>${defeated} / ${ENEMY_COUNT}</strong></p>
+    <p>🎯 Accuracy: <strong>${accuracy}%</strong></p>
+    <p>🔥 Best streak: <strong>${streak}</strong></p>
+  `;
+  gameOverScreenEl.classList.remove("hidden");
+
   updateCharPanel();
   updateControlStates();
+  renderMap();
+}
+
+function triggerVictory() {
+  gameOver = true;
+  badges.add("Map Cleared!");
+  const accuracy = attempted === 0 ? 0 : Math.round((correct / attempted) * 100);
+  points += MAP_CLEARED_BONUS_POINTS;
+  coins += MAP_CLEARED_BONUS_COINS;
+  level = calculateLevel(points);
+
+  victoryBonusMsgEl.textContent = `🎁 Bonus reward: +${MAP_CLEARED_BONUS_POINTS} points & +${MAP_CLEARED_BONUS_COINS} 🪙 coins!`;
+  victoryStatsEl.innerHTML = `
+    <p>⚡ Final level: <strong>${level}</strong></p>
+    <p>🪙 Total coins: <strong>${coins}</strong></p>
+    <p>💥 Total points: <strong>${points}</strong></p>
+    <p>🎯 Accuracy: <strong>${accuracy}%</strong></p>
+    <p>🔥 Streak: <strong>${streak}</strong></p>
+  `;
+  victoryScreenEl.classList.remove("hidden");
+
+  mapStatusEl.textContent = "🎉 All enemies defeated! Map cleared!";
+  updateScoreboard();
   renderMap();
 }
 
@@ -593,27 +686,35 @@ function checkAnswer() {
     streak += 1;
     hp = Math.min(MAX_HEALTH, hp + CORRECT_ANSWER_HEAL_AMOUNT);
     const streakBonus = Math.max(streak - 1, 0) * STREAK_BONUS_STEP;
-    const pointsEarned = basePoints + streakBonus;
+    const multiplier = currentEnemy.isBoss ? BOSS_POINT_MULTIPLIER : 1;
+    const pointsEarned = (basePoints + streakBonus) * multiplier;
+    const actualCoins = coinsEarned * multiplier;
     points += pointsEarned;
-    coins += coinsEarned;
+    coins += actualCoins;
     level = calculateLevel(points);
 
     currentEnemy.defeated = true;
     const defeatedEnemy = currentEnemy.name;
+    const wasBoss = currentEnemy.isBoss;
     currentEnemy = null;
     currentQuestion = null;
 
-    feedback.textContent = `Great job! ${defeatedEnemy} defeated.`;
+    feedback.textContent = wasBoss
+      ? `⚡ Boss defeated! ${defeatedEnemy} vanquished for double points!`
+      : `Great job! ${defeatedEnemy} defeated.`;
     feedback.className = "feedback good";
-    showRewardMessage(`+${pointsEarned} points  •  +${coinsEarned} 🪙${streak > 1 ? `  •  🔥 ×${streak} streak!` : ""}`);
+    showRewardMessage(`+${pointsEarned} points  •  +${actualCoins} 🪙${wasBoss ? "  •  ×2 BOSS BONUS!" : ""}${streak > 1 ? `  •  🔥 ×${streak} streak!` : ""}`);
 
     const remainingEnemies = enemies.filter((enemy) => !enemy.defeated).length;
     if (remainingEnemies === 0) {
-      mapStatusEl.textContent = "All enemies defeated! You cleared the map.";
-    } else {
-      mapStatusEl.textContent = `${defeatedEnemy} defeated. ${remainingEnemies} enemies remain.`;
+      showExplorationQuestCard();
+      updateScoreboard();
+      renderMap();
+      triggerVictory();
+      return;
     }
 
+    mapStatusEl.textContent = `${defeatedEnemy} defeated. ${remainingEnemies} enemies remain.`;
     showExplorationQuestCard();
   } else {
     streak = 0;
@@ -697,6 +798,9 @@ moveUpBtn.addEventListener("click", () => movePlayer(0, -1));
 moveDownBtn.addEventListener("click", () => movePlayer(0, 1));
 moveLeftBtn.addEventListener("click", () => movePlayer(-1, 0));
 moveRightBtn.addEventListener("click", () => movePlayer(1, 0));
+
+gameOverPlayAgainBtn.addEventListener("click", () => { window.location.reload(); });
+victoryPlayAgainBtn.addEventListener("click", () => { window.location.reload(); });
 
 document.addEventListener("keydown", (event) => {
   if (isMovementLocked()) return;
