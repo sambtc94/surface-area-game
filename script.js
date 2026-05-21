@@ -121,6 +121,7 @@ function nextQuestion() {
   try {
     currentQuestion = shape.buildQuestion();
   } catch (error) {
+    console.warn("Question generation failed, using fallback question.", error);
     currentQuestion = {
       prompt: fallbackQuestion.prompt,
       formula: fallbackQuestion.formula,
