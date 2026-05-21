@@ -315,10 +315,6 @@ function updateCharPanel() {
 }
 
 function updateScoreboard() {
-  if (checkForGameOver()) {
-    return;
-  }
-
   correctCountEl.textContent = String(correct);
   attemptedCountEl.textContent = String(attempted);
   const accuracy = attempted === 0 ? 0 : Math.round((correct / attempted) * 100);
@@ -330,6 +326,7 @@ function updateScoreboard() {
   hintsUsedEl.textContent = String(hintsUsed);
   updateBadges();
   updateCharPanel();
+  checkForGameOver();
 }
 
 function checkForGameOver() {
@@ -503,7 +500,6 @@ function startEncounter(enemy) {
 }
 
 function triggerGameOver() {
-  hp = 0;
   gameOver = true;
   currentEnemy = null;
   currentQuestion = null;
