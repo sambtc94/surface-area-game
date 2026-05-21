@@ -1,34 +1,43 @@
 :root {
   color-scheme: light;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
 }
 
 body {
   margin: 0;
-  background: #f4f6fb;
+  min-height: 100vh;
+  background: linear-gradient(160deg, #eef3ff 0%, #f7f9ff 45%, #eefaf7 100%);
   color: #202536;
 }
 
 .container {
-  max-width: 720px;
+  max-width: 780px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 28px 18px;
 }
 
 h1 {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .subtitle {
   margin-top: 0;
+  margin-bottom: 6px;
+  color: #3a4564;
+}
+
+.hint {
+  margin-top: 0;
   margin-bottom: 16px;
+  color: #596684;
+  font-size: 0.95rem;
 }
 
 .card {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 10px 24px rgba(31, 53, 95, 0.1);
   margin-bottom: 16px;
 }
 
@@ -45,13 +54,21 @@ input {
   margin-top: 8px;
   margin-bottom: 12px;
   padding: 10px;
-  border: 1px solid #c6cee1;
+  border: 1px solid #bfc9e3;
   border-radius: 8px;
+  font-size: 1rem;
+}
+
+input:focus {
+  outline: 2px solid #9db9ff;
+  border-color: #2d6cdf;
+  box-shadow: 0 0 0 3px rgba(45, 108, 223, 0.12);
 }
 
 .actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  flex-wrap: wrap;
   margin-bottom: 10px;
 }
 
@@ -60,16 +77,31 @@ button {
   background: #2d6cdf;
   color: #fff;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 10px 15px;
+  font-weight: 600;
   cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.15s ease;
 }
 
 button:hover {
   background: #1e57ba;
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button.secondary {
+  background: #6b7388;
+}
+
+button.secondary:hover {
+  background: #525a6e;
 }
 
 .feedback {
-  min-height: 24px;
+  min-height: 28px;
   font-weight: bold;
 }
 
@@ -79,4 +111,8 @@ button:hover {
 
 .feedback.bad {
   color: #b02a37;
+}
+
+.scoreboard p {
+  margin: 6px 0;
 }

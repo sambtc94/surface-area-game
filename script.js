@@ -41,7 +41,47 @@ const shapes = [
       };
     },
   },
+  {
+    name: "Sphere",
+    buildQuestion() {
+      const r = randomInt(2, 10);
+      const answer = Number((4 * Math.PI * r * r).toFixed(1));
+      return {
+        prompt: `A sphere has radius ${r} cm. Give its total surface area to 1 decimal place.`,
+        formula: "Surface area of a sphere = 4πr²",
+        answer,
+        worked: `SA = 4π(${r}²) = 4π(${r * r}) = ${answer} cm² (to 1 d.p.)`,
+      };
+    },
+  },
+  {
+    name: "Triangular Prism",
+    buildQuestion() {
+      const base = randomInt(4, 12);
+      const triangleHeight = randomInt(3, 10);
+      const prismLength = randomInt(4, 14);
+      const slant = Number(Math.sqrt((base / 2) ** 2 + triangleHeight ** 2).toFixed(1));
+      const baseRectangleArea = base * prismLength;
+      const slantRectanglesArea = 2 * slant * prismLength;
+      const twoTriangleEndsArea = 2 * (0.5 * base * triangleHeight);
+      const answer = Number((baseRectangleArea + slantRectanglesArea + twoTriangleEndsArea).toFixed(1));
+      return {
+        prompt: `A triangular prism has an isosceles triangular cross-section with base ${base} cm and height ${triangleHeight} cm, and prism length ${prismLength} cm. Give the total surface area to 1 decimal place.`,
+        formula: "SA = (base×length) + (2×slant×length) + (2×½×base×triangle height)",
+        answer,
+        worked: `Slant side = √((${base}/2)² + ${triangleHeight}²) = ${slant} cm. Triangle area = ½×${base}×${triangleHeight}. SA = (${base}×${prismLength}) + (2×${slant}×${prismLength}) + (2×½×${base}×${triangleHeight}) = ${answer} cm² (to 1 d.p.)`,
+      };
+    },
+  },
 ];
+
+const fallbackQuestion = {
+  shapeName: "Cube",
+  prompt: "A cube has side length 5 cm. Find its total surface area.",
+  formula: "Surface area of a cube = 6s²",
+  answer: 150,
+  worked: "SA = 6 × 5² = 6 × 25 = 150 cm²",
+};
 
 const title = document.getElementById("shape-title");
 const questionText = document.getElementById("question-text");
@@ -67,10 +107,31 @@ function randomInt(min, max) {
 }
 
 function nextQuestion() {
-  const shape = shapes[randomInt(0, shapes.length - 1)];
-  currentQuestion = shape.buildQuestion();
+  if (shapes.length === 0) {
+    title.textContent = "Question unavailable";
+    questionText.textContent = "No question generators are configured.";
+    formulaText.textContent = "";
+    workedSolution.textContent = "";
+    return;
+  }
 
-  title.textContent = shape.name;
+  const shape = shapes[randomInt(0, shapes.length - 1)];
+  let shapeName = shape.name;
+
+  try {
+    currentQuestion = shape.buildQuestion();
+  } catch (error) {
+    console.warn("Question generation failed, using fallback question.", error);
+    currentQuestion = {
+      prompt: fallbackQuestion.prompt,
+      formula: fallbackQuestion.formula,
+      answer: fallbackQuestion.answer,
+      worked: fallbackQuestion.worked,
+    };
+    shapeName = fallbackQuestion.shapeName;
+  }
+
+  title.textContent = shapeName;
   questionText.textContent = currentQuestion.prompt;
   formulaText.textContent = currentQuestion.formula;
   workedSolution.textContent = currentQuestion.worked;
@@ -89,6 +150,12 @@ function updateScoreboard() {
 }
 
 function checkAnswer() {
+  if (!currentQuestion) {
+    feedback.textContent = "Question failed to load. Please click Next question.";
+    feedback.className = "feedback bad";
+    return;
+  }
+
   const value = Number(answerInput.value);
   if (!answerInput.value || Number.isNaN(value)) {
     feedback.textContent = "Please enter a number first.";
