@@ -61,7 +61,10 @@ const shapes = [
       const triangleHeight = randomInt(3, 10);
       const prismLength = randomInt(4, 14);
       const slant = Number(Math.sqrt((base / 2) ** 2 + triangleHeight ** 2).toFixed(1));
-      const answer = Number((base * prismLength + 2 * slant * prismLength + 2 * (0.5 * base * triangleHeight)).toFixed(1));
+      const baseRectangleArea = base * prismLength;
+      const slantRectanglesArea = 2 * slant * prismLength;
+      const twoTriangleEndsArea = 2 * (0.5 * base * triangleHeight);
+      const answer = Number((baseRectangleArea + slantRectanglesArea + twoTriangleEndsArea).toFixed(1));
       return {
         prompt: `A triangular prism has an isosceles triangular cross-section with base ${base} cm and height ${triangleHeight} cm, and prism length ${prismLength} cm. Give the total surface area to 1 decimal place.`,
         formula: "SA = (base×length) + (2×slant×length) + (2×½×base×triangle height)",
@@ -71,6 +74,14 @@ const shapes = [
     },
   },
 ];
+
+const fallbackQuestion = {
+  shapeName: "Cube",
+  prompt: "A cube has side length 5 cm. Find its total surface area.",
+  formula: "Surface area of a cube = 6s²",
+  answer: 150,
+  worked: "SA = 6 × 5² = 6 × 25 = 150 cm²",
+};
 
 const title = document.getElementById("shape-title");
 const questionText = document.getElementById("question-text");
@@ -111,12 +122,12 @@ function nextQuestion() {
     currentQuestion = shape.buildQuestion();
   } catch (error) {
     currentQuestion = {
-      prompt: "A cube has side length 5 cm. Find its total surface area.",
-      formula: "Surface area of a cube = 6s²",
-      answer: 150,
-      worked: "SA = 6 × 5² = 6 × 25 = 150 cm²",
+      prompt: fallbackQuestion.prompt,
+      formula: fallbackQuestion.formula,
+      answer: fallbackQuestion.answer,
+      worked: fallbackQuestion.worked,
     };
-    shapeName = "Cube";
+    shapeName = fallbackQuestion.shapeName;
   }
 
   title.textContent = shapeName;
