@@ -149,6 +149,7 @@ function nextQuestion() {
   formulaText.textContent = currentQuestion.formula;
   formulaText.classList.add("hidden");
   hintBtn.textContent = "Show formula hint";
+  hintBtn.disabled = false;
   hintShown = false;
   workedSolution.textContent = currentQuestion.worked;
   answerInput.value = "";
@@ -189,6 +190,7 @@ function showHint() {
   hintShown = true;
   formulaText.classList.remove("hidden");
   hintBtn.textContent = "Hint shown";
+  hintBtn.disabled = true;
   updateScoreboard();
 }
 
