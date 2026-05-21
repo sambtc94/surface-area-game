@@ -48,6 +48,20 @@ h1 {
   border-radius: 4px;
 }
 
+.formula.hidden {
+  display: none;
+}
+
+.hint-btn {
+  margin-top: 4px;
+  margin-bottom: 8px;
+  background: #6741d9;
+}
+
+.hint-btn:hover {
+  background: #5233b8;
+}
+
 input {
   width: 100%;
   box-sizing: border-box;
@@ -115,4 +129,16 @@ button.secondary:hover {
 
 .scoreboard p {
   margin: 6px 0;
+}
+
+.reward-message {
+  margin-top: 10px;
+  font-weight: 700;
+  color: #6841c6;
+}
+
+.badge-list {
+  margin-top: 8px;
+  color: #364152;
+  font-weight: 600;
 }

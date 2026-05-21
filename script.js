@@ -91,19 +91,42 @@ const answerInput = document.getElementById("answer-input");
 const feedback = document.getElementById("feedback");
 const checkBtn = document.getElementById("check-btn");
 const nextBtn = document.getElementById("next-btn");
+const hintBtn = document.getElementById("hint-btn");
 
 const correctCountEl = document.getElementById("correct-count");
 const attemptedCountEl = document.getElementById("attempted-count");
 const accuracyEl = document.getElementById("accuracy");
 const streakCountEl = document.getElementById("streak-count");
+const levelCountEl = document.getElementById("level-count");
+const pointsCountEl = document.getElementById("points-count");
+const coinsCountEl = document.getElementById("coins-count");
+const hintsUsedEl = document.getElementById("hints-used");
+const rewardMessageEl = document.getElementById("reward-message");
+const badgeListEl = document.getElementById("badge-list");
+const LEVEL_POINT_STEP = 250;
+const STREAK_BONUS_STEP = 10;
+const POINTS_WITH_HINT = 80;
+const POINTS_WITHOUT_HINT = 100;
+const COINS_WITH_HINT = 1;
+const COINS_WITHOUT_HINT = 3;
 
 let currentQuestion;
 let attempted = 0;
 let correct = 0;
 let streak = 0;
+let points = 0;
+let coins = 0;
+let level = 1;
+let hintsUsed = 0;
+let hintShown = false;
+const badges = new Set();
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function calculateLevel(totalPoints) {
+  return Math.floor(totalPoints / LEVEL_POINT_STEP) + 1;
 }
 
 function nextQuestion() {
@@ -134,11 +157,22 @@ function nextQuestion() {
   title.textContent = shapeName;
   questionText.textContent = currentQuestion.prompt;
   formulaText.textContent = currentQuestion.formula;
+  formulaText.classList.add("hidden");
+  hintBtn.textContent = "Show formula hint";
+  hintBtn.disabled = false;
+  hintShown = false;
   workedSolution.textContent = currentQuestion.worked;
   answerInput.value = "";
   feedback.textContent = "";
   feedback.className = "feedback";
   answerInput.focus();
+}
+
+function updateBadges() {
+  if (correct >= 5) badges.add("Rookie Solver");
+  if (streak >= 3) badges.add("Streak Star");
+  if (level >= 4) badges.add("Area Master");
+  badgeListEl.textContent = badges.size > 0 ? `Badges: ${Array.from(badges).join(" • ")}` : "Badges: None yet";
 }
 
 function updateScoreboard() {
@@ -147,6 +181,27 @@ function updateScoreboard() {
   const accuracy = attempted === 0 ? 0 : Math.round((correct / attempted) * 100);
   accuracyEl.textContent = `${accuracy}%`;
   streakCountEl.textContent = String(streak);
+  levelCountEl.textContent = String(level);
+  pointsCountEl.textContent = String(points);
+  coinsCountEl.textContent = String(coins);
+  hintsUsedEl.textContent = String(hintsUsed);
+  updateBadges();
+}
+
+function showRewardMessage(message) {
+  rewardMessageEl.textContent = message;
+}
+
+function showHint() {
+  if (!currentQuestion) return;
+  if (!hintShown) {
+    hintsUsed += 1;
+  }
+  hintShown = true;
+  formulaText.classList.remove("hidden");
+  hintBtn.textContent = "Hint shown";
+  hintBtn.disabled = true;
+  updateScoreboard();
 }
 
 function checkAnswer() {
@@ -167,14 +222,23 @@ function checkAnswer() {
   const isCorrect = Math.abs(value - currentQuestion.answer) < 0.15;
 
   if (isCorrect) {
+    const basePoints = hintShown ? POINTS_WITH_HINT : POINTS_WITHOUT_HINT;
+    const coinsEarned = hintShown ? COINS_WITH_HINT : COINS_WITHOUT_HINT;
     correct += 1;
     streak += 1;
+    const streakBonus = Math.max(streak - 1, 0) * STREAK_BONUS_STEP;
+    const pointsEarned = basePoints + streakBonus;
+    points += pointsEarned;
+    coins += coinsEarned;
+    level = calculateLevel(points);
     feedback.textContent = `Correct! ${currentQuestion.answer} cm² is right.`;
     feedback.className = "feedback good";
+    showRewardMessage(`Reward +${pointsEarned} points, +${coinsEarned} coins!`);
   } else {
     streak = 0;
     feedback.textContent = `Not quite. Correct answer: ${currentQuestion.answer} cm².`;
     feedback.className = "feedback bad";
+    showRewardMessage("No reward this round. Try again for a streak bonus!");
   }
 
   updateScoreboard();
@@ -182,6 +246,7 @@ function checkAnswer() {
 
 checkBtn.addEventListener("click", checkAnswer);
 nextBtn.addEventListener("click", nextQuestion);
+hintBtn.addEventListener("click", showHint);
 answerInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     checkAnswer();
