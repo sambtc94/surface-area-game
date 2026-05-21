@@ -105,6 +105,10 @@ const rewardMessageEl = document.getElementById("reward-message");
 const badgeListEl = document.getElementById("badge-list");
 const LEVEL_POINT_STEP = 250;
 const STREAK_BONUS_STEP = 10;
+const POINTS_WITH_HINT = 80;
+const POINTS_WITHOUT_HINT = 100;
+const COINS_WITH_HINT = 1;
+const COINS_WITHOUT_HINT = 3;
 
 let currentQuestion;
 let attempted = 0;
@@ -214,11 +218,11 @@ function checkAnswer() {
   const isCorrect = Math.abs(value - currentQuestion.answer) < 0.15;
 
   if (isCorrect) {
-    const basePoints = hintShown ? 80 : 100;
-    const coinsEarned = hintShown ? 1 : 3;
+    const basePoints = hintShown ? POINTS_WITH_HINT : POINTS_WITHOUT_HINT;
+    const coinsEarned = hintShown ? COINS_WITH_HINT : COINS_WITHOUT_HINT;
     correct += 1;
     streak += 1;
-    const streakBonus = streak * STREAK_BONUS_STEP;
+    const streakBonus = Math.max(streak - 1, 0) * STREAK_BONUS_STEP;
     const pointsEarned = basePoints + streakBonus;
     points += pointsEarned;
     coins += coinsEarned;
