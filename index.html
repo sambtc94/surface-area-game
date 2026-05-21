@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surface Area Challenge</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Surface Area Challenge</h1>
+    <p class="subtitle">Year 9/10 practice: calculate the total surface area.</p>
+
+    <section class="card" aria-live="polite">
+      <h2 id="shape-title">Loading question...</h2>
+      <p id="question-text"></p>
+      <p class="formula" id="formula-text"></p>
+
+      <label for="answer-input">Your answer (cm²)</label>
+      <input id="answer-input" type="number" step="0.1" placeholder="Enter your answer" />
+
+      <div class="actions">
+        <button id="check-btn">Check answer</button>
+        <button id="next-btn" type="button">Next question</button>
+      </div>
+
+      <p id="feedback" class="feedback"></p>
+      <details>
+        <summary>Show worked solution</summary>
+        <p id="worked-solution"></p>
+      </details>
+    </section>
+
+    <section class="scoreboard card">
+      <h2>Scoreboard</h2>
+      <p>Correct: <strong id="correct-count">0</strong></p>
+      <p>Attempted: <strong id="attempted-count">0</strong></p>
+      <p>Accuracy: <strong id="accuracy">0%</strong></p>
+      <p>Current streak: <strong id="streak-count">0</strong></p>
+    </section>
+  </main>
+
+  <script src="/script.js"></script>
+</body>
+</html>
