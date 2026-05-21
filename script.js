@@ -19,7 +19,7 @@ const MAX_HEALTH = 100;
 const POTION_HEAL_AMOUNT = 30;
 const CORRECT_ANSWER_HEAL_AMOUNT = 10;
 const WRONG_ANSWER_DAMAGE = 25;
-const DIAGRAM_PROBABILITY = 0.5;
+const DIAGRAM_PROBABILITY = 1;
 
 function getInitialPlayerPos() {
   return { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2) };
@@ -215,7 +215,7 @@ const fallbackQuestion = {
   formula: "Surface area of a cube = 6s²",
   answer: 150,
   worked: "SA = 6 × 5² = 6 × 25 = 150 cm²",
-  diagram: null,
+  diagram: buildShapeDiagram("Cube", { side: 5 }),
 };
 
 const title = document.getElementById("shape-title");
@@ -326,6 +326,15 @@ function updateScoreboard() {
   hintsUsedEl.textContent = String(hintsUsed);
   updateBadges();
   updateCharPanel();
+  checkForGameOver();
+}
+
+function checkForGameOver() {
+  if (hp <= 0 && !gameOver) {
+    triggerGameOver();
+    return true;
+  }
+  return false;
 }
 
 function showRewardMessage(message) {
@@ -503,6 +512,7 @@ function triggerGameOver() {
   diagramContent.innerHTML = "";
   mapStatusEl.textContent = "Game over — your hero has fallen.";
   showRewardMessage("Game over! Defeat enemies faster and collect potions next run.");
+  updateCharPanel();
   updateControlStates();
   renderMap();
 }
@@ -612,11 +622,7 @@ function checkAnswer() {
     feedback.className = "feedback bad";
     showRewardMessage(`Wrong answer: enemy attack deals ${WRONG_ANSWER_DAMAGE} damage.`);
 
-    if (hp <= 0) {
-      triggerGameOver();
-      updateScoreboard();
-      renderMap();
-      updateControlStates();
+    if (checkForGameOver()) {
       return;
     }
 
@@ -650,14 +656,9 @@ startQuestBtn.addEventListener("click", () => {
 
 function startGame() {
   const name = charNameInputEl.value.trim();
-  if (!name) {
-    charNameErrorEl.classList.remove("hidden");
-    charNameInputEl.focus();
-    return;
-  }
-
+  const playerName = name || "Hero";
   charNameErrorEl.classList.add("hidden");
-  charName = name;
+  charName = playerName;
   charCreationEl.classList.add("hidden");
   gameMain.removeAttribute("aria-hidden");
   gameStarted = true;
