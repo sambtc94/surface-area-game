@@ -641,6 +641,10 @@ avatarOptions.forEach((opt) => {
 });
 
 startQuestBtn.addEventListener("click", () => {
+  startGame();
+});
+
+function startGame() {
   const name = charNameInputEl.value.trim();
   if (!name) {
     charNameErrorEl.classList.remove("hidden");
@@ -662,7 +666,7 @@ startQuestBtn.addEventListener("click", () => {
   showRewardMessage("Battle rewards: solve enemy puzzles to gain points and coins.");
   nextBtn.style.display = "none";
   updateControlStates();
-});
+}
 
 charNameInputEl.addEventListener("input", () => {
   if (charNameInputEl.value.trim()) {
@@ -672,7 +676,7 @@ charNameInputEl.addEventListener("input", () => {
 
 charNameInputEl.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
-    startQuestBtn.click();
+    startGame();
   }
 });
 
