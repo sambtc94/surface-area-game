@@ -19,13 +19,14 @@ const MAX_HEALTH = 100;
 const POTION_HEAL_AMOUNT = 30;
 const CORRECT_ANSWER_HEAL_AMOUNT = 10;
 const WRONG_ANSWER_DAMAGE = 25;
+const DIAGRAM_PROBABILITY = 0.5;
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function maybeAttachDiagram(shapeName, details, textPrompt) {
-  const useDiagram = Math.random() < 0.5;
+  const useDiagram = Math.random() < DIAGRAM_PROBABILITY;
   if (!useDiagram) {
     return {
       prompt: textPrompt,
@@ -327,9 +328,13 @@ function showRewardMessage(message) {
   rewardMessageEl.textContent = message;
 }
 
+function isMovementLocked() {
+  return !gameStarted || gameOver || Boolean(currentEnemy);
+}
+
 function updateControlStates() {
   const encounterActive = Boolean(currentEnemy);
-  const movementLocked = !gameStarted || gameOver || encounterActive;
+  const movementLocked = isMovementLocked();
   moveUpBtn.disabled = movementLocked;
   moveDownBtn.disabled = movementLocked;
   moveLeftBtn.disabled = movementLocked;
@@ -516,7 +521,7 @@ function checkMapTileEffects() {
 }
 
 function movePlayer(dx, dy) {
-  if (!gameStarted || gameOver || currentEnemy) {
+  if (isMovementLocked()) {
     return;
   }
 
@@ -597,11 +602,16 @@ function checkAnswer() {
     feedback.textContent = `Not quite, ${charName}. The answer was ${currentQuestion.answer} cm².`;
     feedback.className = "feedback bad";
     showRewardMessage(`Wrong answer: enemy attack deals ${WRONG_ANSWER_DAMAGE} damage.`);
-    mapStatusEl.textContent = `${currentEnemy.name} attacked you!`;
 
     if (hp <= 0) {
       triggerGameOver();
+      updateScoreboard();
+      renderMap();
+      updateControlStates();
+      return;
     }
+
+    mapStatusEl.textContent = `${currentEnemy.name} attacked you!`;
   }
 
   updateScoreboard();
@@ -673,7 +683,7 @@ moveLeftBtn.addEventListener("click", () => movePlayer(-1, 0));
 moveRightBtn.addEventListener("click", () => movePlayer(1, 0));
 
 document.addEventListener("keydown", (event) => {
-  if (!gameStarted || gameOver || currentEnemy) return;
+  if (isMovementLocked()) return;
   if (event.target === answerInput || event.target === charNameInputEl) return;
 
   if (event.key === "ArrowUp") {
