@@ -70,6 +70,9 @@
       </div>
 
       <p id="question-text" class="question-text"></p>
+      <div id="diagram-wrap" class="diagram-wrap hidden" aria-live="polite">
+        <div id="diagram-content"></div>
+      </div>
 
       <button id="hint-btn" type="button" class="hint-btn">Show formula hint</button>
       <p class="formula hidden" id="formula-text"></p>
@@ -87,6 +90,21 @@
         <summary>Show worked solution</summary>
         <p id="worked-solution"></p>
       </details>
+    </section>
+
+    <section class="card map-card">
+      <h2>🗺️ Adventure Map</h2>
+      <p id="map-status" class="map-status">Move around and find enemies to battle.</p>
+      <div id="map-grid" class="map-grid" aria-label="Game map"></div>
+      <div class="move-controls" aria-label="Movement controls">
+        <button id="move-up" type="button">⬆️ Up</button>
+        <div class="move-middle">
+          <button id="move-left" type="button">⬅️ Left</button>
+          <button id="move-right" type="button">➡️ Right</button>
+        </div>
+        <button id="move-down" type="button">⬇️ Down</button>
+      </div>
+      <p class="map-legend">Legend: <strong>🧙 You</strong> • <strong>👾 Enemy</strong> • <strong>🧪 Potion</strong> • <strong>💀 Defeated</strong></p>
     </section>
 
     <section class="scoreboard card">
