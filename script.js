@@ -64,9 +64,9 @@ const shapes = [
       const answer = Number((base * prismLength + 2 * slant * prismLength + 2 * (0.5 * base * triangleHeight)).toFixed(1));
       return {
         prompt: `A triangular prism has an isosceles triangular cross-section with base ${base} cm and height ${triangleHeight} cm, and prism length ${prismLength} cm. Give the total surface area to 1 decimal place.`,
-        formula: "SA = base×length + 2×slant×length + 2×(½×base×triangle height)",
+        formula: "SA = (base×length) + (2×slant×length) + (2×½×base×triangle height)",
         answer,
-        worked: `Slanted side = √((${base}/2)² + ${triangleHeight}²) = ${slant} cm. SA = (${base} + ${slant} + ${slant})×${prismLength} + 2×(½×${base}×${triangleHeight}) = ${answer} cm² (to 1 d.p.)`,
+        worked: `Slanted side = √((${base}/2)² + ${triangleHeight}²) = ${slant} cm. Triangle area = ½×${base}×${triangleHeight}. SA = (${base}×${prismLength}) + (2×${slant}×${prismLength}) + (2×½×${base}×${triangleHeight}) = ${answer} cm² (to 1 d.p.)`,
       };
     },
   },
