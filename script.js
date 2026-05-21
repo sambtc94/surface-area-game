@@ -331,7 +331,6 @@ function updateScoreboard() {
 
 function checkForGameOver() {
   if (hp <= 0 && !gameOver) {
-    hp = 0;
     triggerGameOver();
     return true;
   }
@@ -660,7 +659,6 @@ function startGame() {
   const playerName = name || "Hero";
   charNameErrorEl.classList.add("hidden");
   charName = playerName;
-  charNameInputEl.value = playerName;
   charCreationEl.classList.add("hidden");
   gameMain.removeAttribute("aria-hidden");
   gameStarted = true;
