@@ -1,3 +1,11 @@
+const SHAPE_ICONS = {
+  "Cube": "📦",
+  "Rectangular Prism": "🧱",
+  "Cylinder": "🥫",
+  "Sphere": "🌐",
+  "Triangular Prism": "🔺",
+};
+
 const shapes = [
   {
     name: "Cube",
@@ -92,6 +100,8 @@ const feedback = document.getElementById("feedback");
 const checkBtn = document.getElementById("check-btn");
 const nextBtn = document.getElementById("next-btn");
 const hintBtn = document.getElementById("hint-btn");
+const shapeIconEl = document.getElementById("shape-icon");
+const questNumberEl = document.getElementById("quest-number");
 
 const correctCountEl = document.getElementById("correct-count");
 const attemptedCountEl = document.getElementById("attempted-count");
@@ -103,6 +113,22 @@ const coinsCountEl = document.getElementById("coins-count");
 const hintsUsedEl = document.getElementById("hints-used");
 const rewardMessageEl = document.getElementById("reward-message");
 const badgeListEl = document.getElementById("badge-list");
+
+// Character creation elements
+const charCreationEl = document.getElementById("char-creation");
+const charNameInputEl = document.getElementById("char-name-input");
+const charNameErrorEl = document.getElementById("char-name-error");
+const startQuestBtn = document.getElementById("start-quest-btn");
+const avatarOptions = document.querySelectorAll(".avatar-option");
+const gameMain = document.getElementById("game-main");
+
+// Character panel elements
+const charAvatarDisplay = document.getElementById("char-avatar-display");
+const charNameDisplay = document.getElementById("char-name-display");
+const hpBar = document.getElementById("hp-bar");
+const charLevelEl = document.getElementById("char-level");
+const charCoinsEl = document.getElementById("char-coins");
+const charStreakEl = document.getElementById("char-streak");
 const LEVEL_POINT_STEP = 250;
 const STREAK_BONUS_STEP = 10;
 const POINTS_WITH_HINT = 80;
@@ -119,6 +145,11 @@ let coins = 0;
 let level = 1;
 let hintsUsed = 0;
 let hintShown = false;
+let questNumber = 0;
+let hp = 100;
+let charName = "Hero";
+let charAvatar = "🧙";
+let charColor = "#6741d9";
 const badges = new Set();
 
 function randomInt(min, max) {
@@ -131,13 +162,14 @@ function calculateLevel(totalPoints) {
 
 function nextQuestion() {
   if (shapes.length === 0) {
-    title.textContent = "Question unavailable";
+    title.textContent = "Quest unavailable";
     questionText.textContent = "No question generators are configured.";
     formulaText.textContent = "";
     workedSolution.textContent = "";
     return;
   }
 
+  questNumber += 1;
   const shape = shapes[randomInt(0, shapes.length - 1)];
   let shapeName = shape.name;
 
@@ -155,6 +187,8 @@ function nextQuestion() {
   }
 
   title.textContent = shapeName;
+  shapeIconEl.textContent = SHAPE_ICONS[shapeName] || "📐";
+  questNumberEl.textContent = `#${questNumber}`;
   questionText.textContent = currentQuestion.prompt;
   formulaText.textContent = currentQuestion.formula;
   formulaText.classList.add("hidden");
@@ -175,6 +209,23 @@ function updateBadges() {
   badgeListEl.textContent = badges.size > 0 ? `Badges: ${Array.from(badges).join(" • ")}` : "Badges: None yet";
 }
 
+function updateCharPanel() {
+  charAvatarDisplay.textContent = charAvatar;
+  charAvatarDisplay.style.background = charColor;
+  charNameDisplay.textContent = charName;
+  hpBar.style.width = `${hp}%`;
+  if (hp > 60) {
+    hpBar.style.background = "#2d9e4e";
+  } else if (hp > 30) {
+    hpBar.style.background = "#d97c28";
+  } else {
+    hpBar.style.background = "#d93b3b";
+  }
+  charLevelEl.textContent = String(level);
+  charCoinsEl.textContent = String(coins);
+  charStreakEl.textContent = String(streak);
+}
+
 function updateScoreboard() {
   correctCountEl.textContent = String(correct);
   attemptedCountEl.textContent = String(attempted);
@@ -186,6 +237,7 @@ function updateScoreboard() {
   coinsCountEl.textContent = String(coins);
   hintsUsedEl.textContent = String(hintsUsed);
   updateBadges();
+  updateCharPanel();
 }
 
 function showRewardMessage(message) {
@@ -206,14 +258,14 @@ function showHint() {
 
 function checkAnswer() {
   if (!currentQuestion) {
-    feedback.textContent = "Question failed to load. Please click Next question.";
+    feedback.textContent = "Quest failed to load. Click Next Quest to try again.";
     feedback.className = "feedback bad";
     return;
   }
 
   const value = Number(answerInput.value);
   if (!answerInput.value || Number.isNaN(value)) {
-    feedback.textContent = "Please enter a number first.";
+    feedback.textContent = "Enter a number to submit your answer!";
     feedback.className = "feedback bad";
     return;
   }
@@ -226,19 +278,28 @@ function checkAnswer() {
     const coinsEarned = hintShown ? COINS_WITH_HINT : COINS_WITHOUT_HINT;
     correct += 1;
     streak += 1;
+    hp = Math.min(100, hp + 10);
     const streakBonus = Math.max(streak - 1, 0) * STREAK_BONUS_STEP;
     const pointsEarned = basePoints + streakBonus;
     points += pointsEarned;
     coins += coinsEarned;
     level = calculateLevel(points);
-    feedback.textContent = `Correct! ${currentQuestion.answer} cm² is right.`;
+    const questCompleteMessages = [
+      "Quest complete! 🎉",
+      "Quest cleared! 🏆",
+      "Outstanding work! ⚡",
+      "Brilliant! Quest done! 🌟",
+    ];
+    const msg = questCompleteMessages[randomInt(0, questCompleteMessages.length - 1)];
+    feedback.textContent = `${msg} ${currentQuestion.answer} cm² is correct.`;
     feedback.className = "feedback good";
-    showRewardMessage(`Reward +${pointsEarned} points, +${coinsEarned} coins!`);
+    showRewardMessage(`+${pointsEarned} points  •  +${coinsEarned} 🪙${streak > 1 ? `  •  🔥 ×${streak} streak!` : ""}`);
   } else {
     streak = 0;
-    feedback.textContent = `Not quite. Correct answer: ${currentQuestion.answer} cm².`;
+    hp = Math.max(0, hp - 20);
+    feedback.textContent = `Not quite, ${charName}. The answer was ${currentQuestion.answer} cm². Keep going!`;
     feedback.className = "feedback bad";
-    showRewardMessage("No reward this round. Try again for a streak bonus!");
+    showRewardMessage("No reward this round — keep pushing for a streak! 💪");
   }
 
   updateScoreboard();
@@ -253,5 +314,44 @@ answerInput.addEventListener("keydown", (event) => {
   }
 });
 
-nextQuestion();
-updateScoreboard();
+// Character creation
+avatarOptions.forEach((opt) => {
+  opt.addEventListener("click", () => {
+    avatarOptions.forEach((o) => {
+      o.classList.remove("selected");
+      o.setAttribute("aria-pressed", "false");
+    });
+    opt.classList.add("selected");
+    opt.setAttribute("aria-pressed", "true");
+    charAvatar = opt.dataset.avatar;
+    charColor = opt.dataset.color;
+  });
+});
+
+startQuestBtn.addEventListener("click", () => {
+  const name = charNameInputEl.value.trim();
+  if (!name) {
+    charNameErrorEl.classList.remove("hidden");
+    charNameInputEl.focus();
+    return;
+  }
+  charNameErrorEl.classList.add("hidden");
+  charName = name;
+  charCreationEl.classList.add("hidden");
+  gameMain.removeAttribute("aria-hidden");
+  updateCharPanel();
+  nextQuestion();
+  updateScoreboard();
+});
+
+charNameInputEl.addEventListener("input", () => {
+  if (charNameInputEl.value.trim()) {
+    charNameErrorEl.classList.add("hidden");
+  }
+});
+
+charNameInputEl.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    startQuestBtn.click();
+  }
+});
