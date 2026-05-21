@@ -3,18 +3,74 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Surface Area Challenge</title>
+  <title>Surface Area Quest</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="container">
-    <h1>Surface Area Challenge</h1>
-    <p class="subtitle">Year 9/10 practice: calculate the total surface area.</p>
-    <p class="hint">Tip: use π ≈ 3.14 when needed, and round as instructed.</p>
 
-    <section class="card" aria-live="polite">
-      <h2 id="shape-title">Loading question...</h2>
-      <p id="question-text"></p>
+  <!-- Character Creation Screen -->
+  <div id="char-creation" class="char-creation-overlay" role="dialog" aria-modal="true" aria-label="Character creation">
+    <div class="char-creation-card">
+      <div class="char-creation-logo">🗺️</div>
+      <h1 class="char-creation-title">Surface Area Quest</h1>
+      <p class="char-creation-subtitle">Create your character and embark on a mathematical adventure!</p>
+
+      <div class="char-name-section">
+        <label for="char-name-input">Your hero's name</label>
+        <input id="char-name-input" type="text" placeholder="Enter your name…" maxlength="20" autocomplete="off" />
+        <p id="char-name-error" class="char-name-error hidden">Please enter a name to continue.</p>
+      </div>
+
+      <div class="char-avatar-section">
+        <p class="avatar-label">Choose your character</p>
+        <div class="avatar-grid" role="group" aria-label="Avatar options">
+          <button type="button" class="avatar-option selected" data-avatar="🧙" data-color="#6741d9" aria-label="Wizard" aria-pressed="true">🧙<span class="avatar-name">Wizard</span></button>
+          <button type="button" class="avatar-option" data-avatar="🤖" data-color="#2d6cdf" aria-label="Robot" aria-pressed="false">🤖<span class="avatar-name">Robot</span></button>
+          <button type="button" class="avatar-option" data-avatar="🦊" data-color="#d97c28" aria-label="Fox" aria-pressed="false">🦊<span class="avatar-name">Fox</span></button>
+          <button type="button" class="avatar-option" data-avatar="🐉" data-color="#c0392b" aria-label="Dragon" aria-pressed="false">🐉<span class="avatar-name">Dragon</span></button>
+          <button type="button" class="avatar-option" data-avatar="🌟" data-color="#c79b00" aria-label="Star" aria-pressed="false">🌟<span class="avatar-name">Star</span></button>
+          <button type="button" class="avatar-option" data-avatar="🔥" data-color="#1a9fb0" aria-label="Flame" aria-pressed="false">🔥<span class="avatar-name">Flame</span></button>
+        </div>
+      </div>
+
+      <button id="start-quest-btn" type="button" class="start-quest-btn">⚡ Begin Quest</button>
+    </div>
+  </div>
+
+  <!-- Main Game -->
+  <main class="container" id="game-main" aria-hidden="true">
+
+    <!-- Character Panel -->
+    <div id="char-panel" class="char-panel">
+      <div class="char-info">
+        <div id="char-avatar-display" class="char-avatar-display">🧙</div>
+        <div class="char-details">
+          <span id="char-name-display" class="char-name-display">Hero</span>
+          <div class="hp-bar-container" title="Health">
+            <div id="hp-bar" class="hp-bar"></div>
+          </div>
+          <span class="hp-label">HP</span>
+        </div>
+      </div>
+      <div class="char-quick-stats">
+        <span class="quick-stat">⚡ Lvl <strong id="char-level">1</strong></span>
+        <span class="quick-stat">🪙 <strong id="char-coins">0</strong></span>
+        <span class="quick-stat">🔥 ×<strong id="char-streak">0</strong></span>
+      </div>
+    </div>
+
+    <section class="card quest-card" aria-live="polite">
+      <div class="quest-header">
+        <span id="shape-icon" class="shape-icon">📐</span>
+        <div>
+          <p class="quest-label">ACTIVE QUEST</p>
+          <h2 id="shape-title">Loading quest…</h2>
+        </div>
+        <span id="quest-number" class="quest-number">#1</span>
+      </div>
+
+      <p id="question-text" class="question-text"></p>
+
       <button id="hint-btn" type="button" class="hint-btn">Show formula hint</button>
       <p class="formula hidden" id="formula-text"></p>
 
@@ -22,8 +78,8 @@
       <input id="answer-input" type="number" step="0.1" placeholder="Enter your answer" inputmode="decimal" />
 
       <div class="actions">
-        <button id="check-btn" type="button">Check answer</button>
-        <button id="next-btn" type="button" class="secondary">Next question</button>
+        <button id="check-btn" type="button">⚔️ Submit Answer</button>
+        <button id="next-btn" type="button" class="secondary">Next Quest →</button>
       </div>
 
       <p id="feedback" class="feedback"></p>
@@ -34,9 +90,9 @@
     </section>
 
     <section class="scoreboard card">
-      <h2>Scoreboard</h2>
-      <p>Correct: <strong id="correct-count">0</strong></p>
-      <p>Attempted: <strong id="attempted-count">0</strong></p>
+      <h2>📊 Character Stats</h2>
+      <p>Quests correct: <strong id="correct-count">0</strong></p>
+      <p>Quests attempted: <strong id="attempted-count">0</strong></p>
       <p>Accuracy: <strong id="accuracy">0%</strong></p>
       <p>Current streak: <strong id="streak-count">0</strong></p>
       <p>Level: <strong id="level-count">1</strong></p>
