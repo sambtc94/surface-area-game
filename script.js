@@ -517,7 +517,7 @@ function triggerGameOver() {
   diagramContent.innerHTML = "";
   mapStatusEl.textContent = "Game over — your hero has fallen.";
   showRewardMessage("Game over! Defeat enemies faster and collect potions next run.");
-  updateScoreboard();
+  updateCharPanel();
   updateControlStates();
   renderMap();
 }
@@ -661,10 +661,10 @@ startQuestBtn.addEventListener("click", () => {
 
 function startGame() {
   const name = charNameInputEl.value.trim();
-  const safeName = name || "Hero";
+  const playerName = name || "Hero";
   charNameErrorEl.classList.add("hidden");
-  charName = safeName;
-  charNameInputEl.value = safeName;
+  charName = playerName;
+  charNameInputEl.value = playerName;
   charCreationEl.classList.add("hidden");
   gameMain.removeAttribute("aria-hidden");
   gameStarted = true;
