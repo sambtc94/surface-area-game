@@ -15,6 +15,10 @@ const COINS_WITHOUT_HINT = 3;
 const MAP_SIZE = 7;
 const ENEMY_COUNT = 6;
 const POTION_COUNT = 5;
+const MAX_HEALTH = 100;
+const POTION_HEAL_AMOUNT = 30;
+const CORRECT_ANSWER_HEAL_AMOUNT = 10;
+const WRONG_ANSWER_DAMAGE = 25;
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -266,7 +270,7 @@ let level = 1;
 let hintsUsed = 0;
 let hintShown = false;
 let questNumber = 0;
-let hp = 100;
+let hp = MAX_HEALTH;
 let charName = "Hero";
 let charAvatar = "🧙";
 let charColor = "#6741d9";
@@ -498,8 +502,8 @@ function checkMapTileEffects() {
   const potion = potions.find((p) => !p.used && p.x === playerPos.x && p.y === playerPos.y);
   if (potion) {
     potion.used = true;
-    hp = Math.min(100, hp + 30);
-    mapStatusEl.textContent = "Potion collected! Health restored by 30.";
+    hp = Math.min(MAX_HEALTH, hp + POTION_HEAL_AMOUNT);
+    mapStatusEl.textContent = `Potion collected! Health restored by ${POTION_HEAL_AMOUNT}.`;
   }
 
   const enemy = enemies.find((e) => !e.defeated && e.x === playerPos.x && e.y === playerPos.y);
@@ -563,7 +567,7 @@ function checkAnswer() {
     const coinsEarned = hintShown ? COINS_WITH_HINT : COINS_WITHOUT_HINT;
     correct += 1;
     streak += 1;
-    hp = Math.min(100, hp + 10);
+    hp = Math.min(MAX_HEALTH, hp + CORRECT_ANSWER_HEAL_AMOUNT);
     const streakBonus = Math.max(streak - 1, 0) * STREAK_BONUS_STEP;
     const pointsEarned = basePoints + streakBonus;
     points += pointsEarned;
@@ -589,10 +593,10 @@ function checkAnswer() {
     showExplorationQuestCard();
   } else {
     streak = 0;
-    hp = Math.max(0, hp - 25);
+    hp = Math.max(0, hp - WRONG_ANSWER_DAMAGE);
     feedback.textContent = `Not quite, ${charName}. The answer was ${currentQuestion.answer} cm².`;
     feedback.className = "feedback bad";
-    showRewardMessage("Wrong answer: enemy attack deals 25 damage.");
+    showRewardMessage(`Wrong answer: enemy attack deals ${WRONG_ANSWER_DAMAGE} damage.`);
     mapStatusEl.textContent = `${currentEnemy.name} attacked you!`;
 
     if (hp <= 0) {
