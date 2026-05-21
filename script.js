@@ -21,6 +21,10 @@ const CORRECT_ANSWER_HEAL_AMOUNT = 10;
 const WRONG_ANSWER_DAMAGE = 25;
 const DIAGRAM_PROBABILITY = 0.5;
 
+function getInitialPlayerPos() {
+  return { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2) };
+}
+
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -277,7 +281,7 @@ let charAvatar = "🧙";
 let charColor = "#6741d9";
 let gameStarted = false;
 let gameOver = false;
-let playerPos = { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2) };
+let playerPos = getInitialPlayerPos();
 let enemies = [];
 let potions = [];
 const badges = new Set();
@@ -329,7 +333,7 @@ function showRewardMessage(message) {
 }
 
 function isMovementLocked() {
-  return !gameStarted || gameOver || Boolean(currentEnemy);
+  return !gameStarted || gameOver || !!currentEnemy;
 }
 
 function updateControlStates() {
@@ -373,7 +377,7 @@ function randomUnusedCell(used) {
 }
 
 function initializeMap() {
-  playerPos = { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2) };
+  playerPos = getInitialPlayerPos();
   const used = new Set([`${playerPos.x},${playerPos.y}`]);
 
   enemies = Array.from({ length: ENEMY_COUNT }, (_, index) => {
