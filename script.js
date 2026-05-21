@@ -507,8 +507,13 @@ function checkMapTileEffects() {
   const potion = potions.find((p) => !p.used && p.x === playerPos.x && p.y === playerPos.y);
   if (potion) {
     potion.used = true;
+    const hpBefore = hp;
     hp = Math.min(MAX_HEALTH, hp + POTION_HEAL_AMOUNT);
-    mapStatusEl.textContent = `Potion collected! Health restored by ${POTION_HEAL_AMOUNT}.`;
+    const healedAmount = hp - hpBefore;
+    mapStatusEl.textContent =
+      healedAmount > 0
+        ? `Potion collected! Health restored by ${healedAmount}.`
+        : "Potion collected, but your health was already full.";
   }
 
   const enemy = enemies.find((e) => !e.defeated && e.x === playerPos.x && e.y === playerPos.y);
@@ -629,7 +634,9 @@ avatarOptions.forEach((opt) => {
     opt.setAttribute("aria-pressed", "true");
     charAvatar = opt.dataset.avatar;
     charColor = opt.dataset.color;
-    renderMap();
+    if (gameStarted) {
+      renderMap();
+    }
   });
 });
 
