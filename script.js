@@ -19,7 +19,7 @@ const MAX_HEALTH = 100;
 const POTION_HEAL_AMOUNT = 30;
 const CORRECT_ANSWER_HEAL_AMOUNT = 10;
 const WRONG_ANSWER_DAMAGE = 25;
-const DIAGRAM_PROBABILITY = 0.5;
+const DIAGRAM_PROBABILITY = 1;
 
 function getInitialPlayerPos() {
   return { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2) };
@@ -215,7 +215,7 @@ const fallbackQuestion = {
   formula: "Surface area of a cube = 6s²",
   answer: 150,
   worked: "SA = 6 × 5² = 6 × 25 = 150 cm²",
-  diagram: null,
+  diagram: buildShapeDiagram("Cube", { side: 5 }),
 };
 
 const title = document.getElementById("shape-title");
@@ -315,6 +315,10 @@ function updateCharPanel() {
 }
 
 function updateScoreboard() {
+  if (checkForGameOver()) {
+    return;
+  }
+
   correctCountEl.textContent = String(correct);
   attemptedCountEl.textContent = String(attempted);
   const accuracy = attempted === 0 ? 0 : Math.round((correct / attempted) * 100);
@@ -326,6 +330,15 @@ function updateScoreboard() {
   hintsUsedEl.textContent = String(hintsUsed);
   updateBadges();
   updateCharPanel();
+}
+
+function checkForGameOver() {
+  if (hp <= 0 && !gameOver) {
+    hp = 0;
+    triggerGameOver();
+    return true;
+  }
+  return false;
 }
 
 function showRewardMessage(message) {
@@ -490,6 +503,7 @@ function startEncounter(enemy) {
 }
 
 function triggerGameOver() {
+  hp = 0;
   gameOver = true;
   currentEnemy = null;
   currentQuestion = null;
@@ -503,6 +517,7 @@ function triggerGameOver() {
   diagramContent.innerHTML = "";
   mapStatusEl.textContent = "Game over — your hero has fallen.";
   showRewardMessage("Game over! Defeat enemies faster and collect potions next run.");
+  updateScoreboard();
   updateControlStates();
   renderMap();
 }
@@ -612,11 +627,7 @@ function checkAnswer() {
     feedback.className = "feedback bad";
     showRewardMessage(`Wrong answer: enemy attack deals ${WRONG_ANSWER_DAMAGE} damage.`);
 
-    if (hp <= 0) {
-      triggerGameOver();
-      updateScoreboard();
-      renderMap();
-      updateControlStates();
+    if (checkForGameOver()) {
       return;
     }
 
@@ -650,14 +661,10 @@ startQuestBtn.addEventListener("click", () => {
 
 function startGame() {
   const name = charNameInputEl.value.trim();
-  if (!name) {
-    charNameErrorEl.classList.remove("hidden");
-    charNameInputEl.focus();
-    return;
-  }
-
+  const safeName = name || "Hero";
   charNameErrorEl.classList.add("hidden");
-  charName = name;
+  charName = safeName;
+  charNameInputEl.value = safeName;
   charCreationEl.classList.add("hidden");
   gameMain.removeAttribute("aria-hidden");
   gameStarted = true;
