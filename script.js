@@ -213,15 +213,15 @@ const shapes = [
   },
 ];
 
-function buildCompositeQuestion() {
-  const idx1 = randomInt(0, shapes.length - 1);
+function buildCompositeQuestion(shapePool = shapes) {
+  const idx1 = randomInt(0, shapePool.length - 1);
   let idx2;
   do {
-    idx2 = randomInt(0, shapes.length - 1);
+    idx2 = randomInt(0, shapePool.length - 1);
   } while (idx2 === idx1);
 
-  const shape1 = shapes[idx1];
-  const shape2 = shapes[idx2];
+  const shape1 = shapePool[idx1];
+  const shape2 = shapePool[idx2];
   const q1 = shape1.buildQuestion();
   const q2 = shape2.buildQuestion();
   const totalAnswer = Number((q1.answer + q2.answer).toFixed(1));
@@ -278,6 +278,8 @@ const charNameInputEl = document.getElementById("char-name-input");
 const charNameErrorEl = document.getElementById("char-name-error");
 const startQuestBtn = document.getElementById("start-quest-btn");
 const avatarOptions = document.querySelectorAll(".avatar-option");
+const optionNoSphereEl = document.getElementById("option-no-sphere");
+const optionNoSlantEl = document.getElementById("option-no-slant");
 const gameMain = document.getElementById("game-main");
 
 const charAvatarDisplay = document.getElementById("char-avatar-display");
@@ -318,6 +320,8 @@ let hp = MAX_HEALTH;
 let charName = "Hero";
 let charAvatar = "🧙";
 let charColor = "#6741d9";
+let removeSphereQuestions = false;
+let removeSlantHeightQuestions = false;
 let gameStarted = false;
 let gameOver = false;
 let playerPos = getInitialPlayerPos();
@@ -513,14 +517,20 @@ function renderMap() {
 }
 
 function getRandomQuestion() {
-  if (shapes.length === 0) {
+  const availableShapes = shapes.filter((shape) => {
+    if (removeSphereQuestions && shape.name === "Sphere") return false;
+    if (removeSlantHeightQuestions && shape.name === "Triangular Prism") return false;
+    return true;
+  });
+
+  if (availableShapes.length === 0) {
     return {
-      shapeName: fallbackQuestion.shapeName,
+      shapeName: "Cube",
       ...fallbackQuestion,
     };
   }
 
-  const shape = shapes[randomInt(0, shapes.length - 1)];
+  const shape = availableShapes[randomInt(0, availableShapes.length - 1)];
   let shapeName = shape.name;
 
   try {
@@ -530,7 +540,7 @@ function getRandomQuestion() {
     };
   } catch (error) {
     console.warn("Question generation failed, using fallback question.", error);
-    shapeName = fallbackQuestion.shapeName;
+    shapeName = "Cube";
     return {
       shapeName,
       ...fallbackQuestion,
@@ -539,8 +549,18 @@ function getRandomQuestion() {
 }
 
 function getBossQuestion() {
+  const availableShapes = shapes.filter((shape) => {
+    if (removeSphereQuestions && shape.name === "Sphere") return false;
+    if (removeSlantHeightQuestions && shape.name === "Triangular Prism") return false;
+    return true;
+  });
+
+  if (availableShapes.length < 2) {
+    return getRandomQuestion();
+  }
+
   try {
-    return buildCompositeQuestion();
+    return buildCompositeQuestion(availableShapes);
   } catch (error) {
     console.warn("Composite question generation failed, using regular question.", error);
     return getRandomQuestion();
@@ -787,6 +807,8 @@ function startGame() {
   const playerName = name || "Hero";
   charNameErrorEl.classList.add("hidden");
   charName = playerName;
+  removeSphereQuestions = optionNoSphereEl?.checked || false;
+  removeSlantHeightQuestions = optionNoSlantEl?.checked || false;
   charCreationEl.classList.add("hidden");
   gameMain.removeAttribute("aria-hidden");
   gameStarted = true;
