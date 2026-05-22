@@ -214,6 +214,10 @@ const shapes = [
 ];
 
 function buildCompositeQuestion(shapePool = shapes) {
+  if (shapePool.length < 2) {
+    throw new Error("At least two shapes are required for a composite question.");
+  }
+
   const idx1 = randomInt(0, shapePool.length - 1);
   let idx2;
   do {
