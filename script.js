@@ -24,7 +24,6 @@ const POTION_HEAL_AMOUNT = 30;
 const CORRECT_ANSWER_HEAL_AMOUNT = 10;
 const WRONG_ANSWER_DAMAGE = 25;
 const DIAGRAM_PROBABILITY = 1;
-const TERRAIN_TYPES = ["grass", "forest", "path", "water", "stone"];
 
 function getInitialPlayerPos() {
   return { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2) };
