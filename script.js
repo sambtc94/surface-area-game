@@ -217,7 +217,7 @@ const shapes = [
 
 function buildCompositeQuestion(shapePool = shapes) {
   if (shapePool.length < 2) {
-    throw new Error(`Composite question generation requires at least 2 shapes, but received ${shapePool.length}.`);
+    throw new Error(`Composite question generation requires at least 2 shapes, but pool contains only ${shapePool.length}.`);
   }
 
   const idx1 = randomInt(0, shapePool.length - 1);
@@ -372,6 +372,7 @@ function loadShapePreferences() {
     const selected = parsed.filter((name) => validNames.has(name));
     return new Set(selected.length > 0 ? selected : Array.from(validNames));
   } catch (error) {
+    console.warn("Failed to parse saved shape preferences cookie; using defaults.", error);
     return new Set(getAllShapeNames());
   }
 }
