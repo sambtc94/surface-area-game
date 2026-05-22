@@ -464,34 +464,98 @@ button.secondary:hover {
 .map-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
+  gap: 5px;
   margin-bottom: 12px;
+  background: #1d2745;
+  border: 4px solid #111a33;
+  border-radius: 12px;
+  padding: 8px;
 }
 
 .map-cell {
-  border-radius: 8px;
-  background: #edf2ff;
-  min-height: 34px;
+  border-radius: 6px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  position: relative;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.map-cell.terrain-grass {
+  background: linear-gradient(160deg, #59b865, #429f4f);
+}
+
+.map-cell.terrain-forest {
+  background: linear-gradient(160deg, #2f8d4d, #2d6f43);
+}
+
+.map-cell.terrain-path {
+  background: linear-gradient(160deg, #c7b48a, #ab9469);
+}
+
+.map-cell.terrain-water {
+  background: linear-gradient(160deg, #3c89d8, #246ab2);
+}
+
+.map-cell.terrain-stone {
+  background: linear-gradient(160deg, #7f8799, #6d768b);
 }
 
 .map-cell.player {
-  background: #d8ccff;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
 .map-cell.enemy {
-  background: #ffd9d9;
+  box-shadow: inset 0 0 0 2px rgba(255, 196, 196, 0.75), 0 0 0 1px rgba(255, 170, 170, 0.4);
 }
 
 .map-cell.potion {
-  background: #d8ffe4;
+  box-shadow: inset 0 0 0 2px rgba(195, 255, 217, 0.75), 0 0 0 1px rgba(153, 236, 188, 0.45);
 }
 
 .map-cell.defeated {
-  background: #e9e9f0;
+  filter: saturate(0.5);
+}
+
+.sprite {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  user-select: none;
+}
+
+.sprite-player {
+  background: radial-gradient(circle at 35% 25%, #ffffff, #c8b3ff 65%, #8f6be2);
+  color: #27124f;
+}
+
+.sprite-enemy {
+  background: radial-gradient(circle at 35% 25%, #ffd4d4, #f18a8a 65%, #be4242);
+}
+
+.sprite-boss {
+  width: 34px;
+  height: 34px;
+  background: radial-gradient(circle at 35% 25%, #ffe7c7, #ffb869 65%, #d36b0a);
+  font-size: 0.72rem;
+  letter-spacing: -0.08em;
+}
+
+.sprite-potion {
+  background: radial-gradient(circle at 35% 25%, #e5fff0, #95e4bc 65%, #34a873);
+}
+
+.sprite-defeated {
+  background: radial-gradient(circle at 35% 25%, #ffffff, #d3d4e0 65%, #8f93a8);
+  color: #34384f;
 }
 
 .move-controls {
