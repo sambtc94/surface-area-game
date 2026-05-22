@@ -478,7 +478,7 @@ function renderMap() {
     for (let x = 0; x < MAP_SIZE; x += 1) {
       const cell = document.createElement("div");
       cell.className = "map-cell";
-      const terrain = terrainMap[y]?.[x] || TERRAIN_TYPES[randomInt(0, TERRAIN_TYPES.length - 1)];
+      const terrain = terrainMap[y]?.[x] || "grass";
       cell.classList.add(`terrain-${terrain}`);
 
       const enemy = enemies.find((e) => e.x === x && e.y === y);
