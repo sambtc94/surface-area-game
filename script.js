@@ -24,6 +24,8 @@ const POTION_HEAL_AMOUNT = 30;
 const CORRECT_ANSWER_HEAL_AMOUNT = 10;
 const WRONG_ANSWER_DAMAGE = 25;
 const DIAGRAM_PROBABILITY = 1;
+const COOKIE_MAX_AGE_SECONDS = 31536000;
+const SHAPE_PREFS_COOKIE = "surface_area_shape_prefs";
 
 function getInitialPlayerPos() {
   return { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2) };
@@ -213,15 +215,19 @@ const shapes = [
   },
 ];
 
-function buildCompositeQuestion() {
-  const idx1 = randomInt(0, shapes.length - 1);
+function buildCompositeQuestion(shapePool = shapes) {
+  if (shapePool.length < 2) {
+    throw new Error(`Composite question generation requires at least 2 shapes, but pool contains only ${shapePool.length}.`);
+  }
+
+  const idx1 = randomInt(0, shapePool.length - 1);
   let idx2;
   do {
-    idx2 = randomInt(0, shapes.length - 1);
+    idx2 = randomInt(0, shapePool.length - 1);
   } while (idx2 === idx1);
 
-  const shape1 = shapes[idx1];
-  const shape2 = shapes[idx2];
+  const shape1 = shapePool[idx1];
+  const shape2 = shapePool[idx2];
   const q1 = shape1.buildQuestion();
   const q2 = shape2.buildQuestion();
   const totalAnswer = Number((q1.answer + q2.answer).toFixed(1));
@@ -241,6 +247,7 @@ function buildCompositeQuestion() {
 }
 
 const fallbackQuestion = {
+  shapeName: "Cube",
   prompt: "A cube has side length 5 cm. Find its total surface area.",
   formula: "Surface area of a cube = 6s²",
   answer: 150,
@@ -278,6 +285,8 @@ const charNameInputEl = document.getElementById("char-name-input");
 const charNameErrorEl = document.getElementById("char-name-error");
 const startQuestBtn = document.getElementById("start-quest-btn");
 const avatarOptions = document.querySelectorAll(".avatar-option");
+const shapeOptionsEls = document.querySelectorAll(".shape-option");
+const shapeOptionsErrorEl = document.getElementById("shape-options-error");
 const gameMain = document.getElementById("game-main");
 
 const charAvatarDisplay = document.getElementById("char-avatar-display");
@@ -318,6 +327,7 @@ let hp = MAX_HEALTH;
 let charName = "Hero";
 let charAvatar = "🧙";
 let charColor = "#6741d9";
+let enabledShapeNames = new Set(shapes.map((shape) => shape.name));
 let gameStarted = false;
 let gameOver = false;
 let playerPos = getInitialPlayerPos();
@@ -328,6 +338,60 @@ const badges = new Set();
 
 function calculateLevel(totalPoints) {
   return Math.floor(totalPoints / LEVEL_POINT_STEP) + 1;
+}
+
+function getAllShapeNames() {
+  return shapes.map((shape) => shape.name);
+}
+
+function getCookieValue(name) {
+  const cookieParts = document.cookie.split(";").map((part) => part.trim());
+  const target = cookieParts.find((part) => part.startsWith(`${name}=`));
+  return target ? decodeURIComponent(target.slice(name.length + 1)) : "";
+}
+
+function saveShapePreferences(shapeNames) {
+  const value = encodeURIComponent(JSON.stringify(shapeNames));
+  const secureSuffix = window.location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${SHAPE_PREFS_COOKIE}=${value}; max-age=${COOKIE_MAX_AGE_SECONDS}; path=/; samesite=lax${secureSuffix}`;
+}
+
+function loadShapePreferences() {
+  const raw = getCookieValue(SHAPE_PREFS_COOKIE);
+  if (!raw) {
+    return new Set(getAllShapeNames());
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return new Set(getAllShapeNames());
+    }
+
+    const validNames = new Set(getAllShapeNames());
+    const selected = parsed.filter((name) => validNames.has(name));
+    return new Set(selected.length > 0 ? selected : Array.from(validNames));
+  } catch (error) {
+    console.warn("Failed to parse saved shape preferences cookie; using defaults.", error);
+    return new Set(getAllShapeNames());
+  }
+}
+
+function applyShapePreferencesToUI(shapeNames) {
+  shapeOptionsEls.forEach((option) => {
+    const shapeName = option.dataset.shape;
+    option.checked = Boolean(shapeName && shapeNames.has(shapeName));
+  });
+}
+
+function getSelectedShapeNames() {
+  return Array.from(shapeOptionsEls)
+    .filter((option) => option.checked && option.dataset.shape)
+    .map((option) => option.dataset.shape);
+}
+
+function getAvailableShapes() {
+  return shapes.filter((shape) => enabledShapeNames.has(shape.name));
 }
 
 function updateBadges() {
@@ -513,14 +577,16 @@ function renderMap() {
 }
 
 function getRandomQuestion() {
-  if (shapes.length === 0) {
+  const availableShapes = getAvailableShapes();
+
+  if (availableShapes.length === 0) {
     return {
       shapeName: fallbackQuestion.shapeName,
       ...fallbackQuestion,
     };
   }
 
-  const shape = shapes[randomInt(0, shapes.length - 1)];
+  const shape = availableShapes[randomInt(0, availableShapes.length - 1)];
   let shapeName = shape.name;
 
   try {
@@ -539,8 +605,14 @@ function getRandomQuestion() {
 }
 
 function getBossQuestion() {
+  const availableShapes = getAvailableShapes();
+
+  if (availableShapes.length < 2) {
+    return getRandomQuestion();
+  }
+
   try {
-    return buildCompositeQuestion();
+    return buildCompositeQuestion(availableShapes);
   } catch (error) {
     console.warn("Composite question generation failed, using regular question.", error);
     return getRandomQuestion();
@@ -785,8 +857,17 @@ startQuestBtn.addEventListener("click", () => {
 function startGame() {
   const name = charNameInputEl.value.trim();
   const playerName = name || "Hero";
+  const selectedShapeNames = getSelectedShapeNames();
+  if (selectedShapeNames.length === 0) {
+    shapeOptionsErrorEl?.classList.remove("hidden");
+    return;
+  }
+
   charNameErrorEl.classList.add("hidden");
+  shapeOptionsErrorEl?.classList.add("hidden");
   charName = playerName;
+  enabledShapeNames = new Set(selectedShapeNames);
+  saveShapePreferences(selectedShapeNames);
   charCreationEl.classList.add("hidden");
   gameMain.removeAttribute("aria-hidden");
   gameStarted = true;
@@ -811,6 +892,14 @@ charNameInputEl.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     startGame();
   }
+});
+
+shapeOptionsEls.forEach((option) => {
+  option.addEventListener("change", () => {
+    if (getSelectedShapeNames().length > 0) {
+      shapeOptionsErrorEl?.classList.add("hidden");
+    }
+  });
 });
 
 checkBtn.addEventListener("click", checkAnswer);
@@ -847,6 +936,9 @@ document.addEventListener("keydown", (event) => {
     movePlayer(1, 0);
   }
 });
+
+enabledShapeNames = loadShapePreferences();
+applyShapePreferencesToUI(enabledShapeNames);
 
 showExplorationQuestCard();
 updateScoreboard();

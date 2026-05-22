@@ -33,6 +33,31 @@
         </div>
       </div>
 
+      <div class="char-options-section">
+        <p class="avatar-label">Question types</p>
+        <label class="char-option-item" for="option-shape-cube">
+          <input id="option-shape-cube" class="shape-option" type="checkbox" data-shape="Cube" checked />
+          Include cube questions
+        </label>
+        <label class="char-option-item" for="option-shape-prism-rect">
+          <input id="option-shape-prism-rect" class="shape-option" type="checkbox" data-shape="Rectangular Prism" checked />
+          Include rectangular prism questions
+        </label>
+        <label class="char-option-item" for="option-shape-cylinder">
+          <input id="option-shape-cylinder" class="shape-option" type="checkbox" data-shape="Cylinder" checked />
+          Include cylinder questions
+        </label>
+        <label class="char-option-item" for="option-shape-sphere">
+          <input id="option-shape-sphere" class="shape-option" type="checkbox" data-shape="Sphere" checked />
+          Include sphere questions
+        </label>
+        <label class="char-option-item" for="option-shape-prism-tri">
+          <input id="option-shape-prism-tri" class="shape-option" type="checkbox" data-shape="Triangular Prism" checked />
+          Include triangular prism (slant-height) questions
+        </label>
+        <p id="shape-options-error" class="char-name-error hidden">Choose at least one question type.</p>
+      </div>
+
       <button id="start-quest-btn" type="button" class="start-quest-btn">⚡ Begin Quest</button>
     </div>
   </div>
