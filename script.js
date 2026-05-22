@@ -245,6 +245,7 @@ function buildCompositeQuestion(shapePool = shapes) {
 }
 
 const fallbackQuestion = {
+  shapeName: "Cube",
   prompt: "A cube has side length 5 cm. Find its total surface area.",
   formula: "Surface area of a cube = 6s²",
   answer: 150,
@@ -529,7 +530,7 @@ function getRandomQuestion() {
 
   if (availableShapes.length === 0) {
     return {
-      shapeName: "Cube",
+      shapeName: fallbackQuestion.shapeName,
       ...fallbackQuestion,
     };
   }
@@ -544,7 +545,7 @@ function getRandomQuestion() {
     };
   } catch (error) {
     console.warn("Question generation failed, using fallback question.", error);
-    shapeName = "Cube";
+    shapeName = fallbackQuestion.shapeName;
     return {
       shapeName,
       ...fallbackQuestion,
