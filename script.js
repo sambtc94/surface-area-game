@@ -24,6 +24,7 @@ const POTION_HEAL_AMOUNT = 30;
 const CORRECT_ANSWER_HEAL_AMOUNT = 10;
 const WRONG_ANSWER_DAMAGE = 25;
 const DIAGRAM_PROBABILITY = 1;
+const SHAPE_PREFS_COOKIE = "surface_area_shape_prefs";
 
 function getInitialPlayerPos() {
   return { x: Math.floor(MAP_SIZE / 2), y: Math.floor(MAP_SIZE / 2) };
@@ -283,8 +284,8 @@ const charNameInputEl = document.getElementById("char-name-input");
 const charNameErrorEl = document.getElementById("char-name-error");
 const startQuestBtn = document.getElementById("start-quest-btn");
 const avatarOptions = document.querySelectorAll(".avatar-option");
-const optionNoSphereEl = document.getElementById("option-no-sphere");
-const optionNoSlantEl = document.getElementById("option-no-slant");
+const shapeOptionsEls = document.querySelectorAll(".shape-option");
+const shapeOptionsErrorEl = document.getElementById("shape-options-error");
 const gameMain = document.getElementById("game-main");
 
 const charAvatarDisplay = document.getElementById("char-avatar-display");
@@ -325,8 +326,7 @@ let hp = MAX_HEALTH;
 let charName = "Hero";
 let charAvatar = "🧙";
 let charColor = "#6741d9";
-let removeSphereQuestions = false;
-let removeSlantHeightQuestions = false;
+let enabledShapeNames = new Set(shapes.map((shape) => shape.name));
 let gameStarted = false;
 let gameOver = false;
 let playerPos = getInitialPlayerPos();
@@ -337,6 +337,54 @@ const badges = new Set();
 
 function calculateLevel(totalPoints) {
   return Math.floor(totalPoints / LEVEL_POINT_STEP) + 1;
+}
+
+function getCookieValue(name) {
+  const cookieParts = document.cookie.split(";").map((part) => part.trim());
+  const target = cookieParts.find((part) => part.startsWith(`${name}=`));
+  return target ? decodeURIComponent(target.slice(name.length + 1)) : "";
+}
+
+function saveShapePreferences(shapeNames) {
+  const value = encodeURIComponent(JSON.stringify(shapeNames));
+  document.cookie = `${SHAPE_PREFS_COOKIE}=${value}; max-age=31536000; path=/; samesite=lax`;
+}
+
+function loadShapePreferences() {
+  const raw = getCookieValue(SHAPE_PREFS_COOKIE);
+  if (!raw) {
+    return new Set(shapes.map((shape) => shape.name));
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return new Set(shapes.map((shape) => shape.name));
+    }
+
+    const validNames = new Set(shapes.map((shape) => shape.name));
+    const selected = parsed.filter((name) => validNames.has(name));
+    return new Set(selected.length > 0 ? selected : Array.from(validNames));
+  } catch (error) {
+    return new Set(shapes.map((shape) => shape.name));
+  }
+}
+
+function applyShapePreferencesToUI(shapeNames) {
+  shapeOptionsEls.forEach((option) => {
+    const shapeName = option.dataset.shape;
+    option.checked = Boolean(shapeName && shapeNames.has(shapeName));
+  });
+}
+
+function getSelectedShapeNames() {
+  return Array.from(shapeOptionsEls)
+    .filter((option) => option.checked && option.dataset.shape)
+    .map((option) => option.dataset.shape);
+}
+
+function getAvailableShapes() {
+  return shapes.filter((shape) => enabledShapeNames.has(shape.name));
 }
 
 function updateBadges() {
@@ -522,11 +570,7 @@ function renderMap() {
 }
 
 function getRandomQuestion() {
-  const availableShapes = shapes.filter((shape) => {
-    if (removeSphereQuestions && shape.name === "Sphere") return false;
-    if (removeSlantHeightQuestions && shape.name === "Triangular Prism") return false;
-    return true;
-  });
+  const availableShapes = getAvailableShapes();
 
   if (availableShapes.length === 0) {
     return {
@@ -554,11 +598,7 @@ function getRandomQuestion() {
 }
 
 function getBossQuestion() {
-  const availableShapes = shapes.filter((shape) => {
-    if (removeSphereQuestions && shape.name === "Sphere") return false;
-    if (removeSlantHeightQuestions && shape.name === "Triangular Prism") return false;
-    return true;
-  });
+  const availableShapes = getAvailableShapes();
 
   if (availableShapes.length < 2) {
     return getRandomQuestion();
@@ -810,10 +850,17 @@ startQuestBtn.addEventListener("click", () => {
 function startGame() {
   const name = charNameInputEl.value.trim();
   const playerName = name || "Hero";
+  const selectedShapeNames = getSelectedShapeNames();
+  if (selectedShapeNames.length === 0) {
+    shapeOptionsErrorEl?.classList.remove("hidden");
+    return;
+  }
+
   charNameErrorEl.classList.add("hidden");
+  shapeOptionsErrorEl?.classList.add("hidden");
   charName = playerName;
-  removeSphereQuestions = optionNoSphereEl?.checked || false;
-  removeSlantHeightQuestions = optionNoSlantEl?.checked || false;
+  enabledShapeNames = new Set(selectedShapeNames);
+  saveShapePreferences(selectedShapeNames);
   charCreationEl.classList.add("hidden");
   gameMain.removeAttribute("aria-hidden");
   gameStarted = true;
@@ -838,6 +885,14 @@ charNameInputEl.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     startGame();
   }
+});
+
+shapeOptionsEls.forEach((option) => {
+  option.addEventListener("change", () => {
+    if (getSelectedShapeNames().length > 0) {
+      shapeOptionsErrorEl?.classList.add("hidden");
+    }
+  });
 });
 
 checkBtn.addEventListener("click", checkAnswer);
@@ -874,6 +929,9 @@ document.addEventListener("keydown", (event) => {
     movePlayer(1, 0);
   }
 });
+
+enabledShapeNames = loadShapePreferences();
+applyShapePreferencesToUI(enabledShapeNames);
 
 showExplorationQuestCard();
 updateScoreboard();
