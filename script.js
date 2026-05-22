@@ -323,6 +323,7 @@ let gameOver = false;
 let playerPos = getInitialPlayerPos();
 let enemies = [];
 let potions = [];
+let terrainMap = [];
 const badges = new Set();
 
 function calculateLevel(totalPoints) {
@@ -426,6 +427,17 @@ function randomUnusedCell(used) {
 
 function initializeMap() {
   playerPos = getInitialPlayerPos();
+  terrainMap = Array.from({ length: MAP_SIZE }, (_, y) =>
+    Array.from({ length: MAP_SIZE }, (_, x) => {
+      if (x === playerPos.x && y === playerPos.y) return "path";
+      const roll = Math.random();
+      if (roll < 0.52) return "grass";
+      if (roll < 0.72) return "forest";
+      if (roll < 0.86) return "path";
+      if (roll < 0.95) return "stone";
+      return "water";
+    })
+  );
   const used = new Set([`${playerPos.x},${playerPos.y}`]);
 
   enemies = Array.from({ length: ENEMY_COUNT }, (_, index) => {
@@ -451,33 +463,48 @@ function initializeMap() {
   });
 }
 
+function createMapSprite(type, label) {
+  const sprite = document.createElement("span");
+  sprite.className = `sprite sprite-${type}`;
+  sprite.setAttribute("aria-hidden", "true");
+  sprite.textContent = label;
+  return sprite;
+}
+
 function renderMap() {
   mapGridEl.innerHTML = "";
   for (let y = 0; y < MAP_SIZE; y += 1) {
     for (let x = 0; x < MAP_SIZE; x += 1) {
       const cell = document.createElement("div");
       cell.className = "map-cell";
+      const terrain = terrainMap[y]?.[x] || "grass";
+      cell.classList.add(`terrain-${terrain}`);
 
       const enemy = enemies.find((e) => e.x === x && e.y === y);
       const potion = potions.find((p) => p.x === x && p.y === y && !p.used);
 
       if (playerPos.x === x && playerPos.y === y) {
         cell.classList.add("player");
-        cell.textContent = charAvatar;
+        cell.appendChild(createMapSprite("player", charAvatar));
+        cell.setAttribute("aria-label", `${charName} position`);
       } else if (enemy && enemy.defeated) {
         cell.classList.add("defeated");
-        cell.textContent = "💀";
+        cell.appendChild(createMapSprite("defeated", "💀"));
+        cell.setAttribute("aria-label", "Defeated enemy");
       } else if (enemy && enemy.isBoss) {
         cell.classList.add("enemy", "boss");
-        cell.innerHTML = '<span class="boss-icons"><span>👾</span><span>👾</span></span>';
+        cell.appendChild(createMapSprite("boss", "👾👾"));
+        cell.setAttribute("aria-label", `${enemy.name} boss enemy`);
       } else if (enemy) {
         cell.classList.add("enemy");
-        cell.textContent = "👾";
+        cell.appendChild(createMapSprite("enemy", "👾"));
+        cell.setAttribute("aria-label", `${enemy.name} enemy`);
       } else if (potion) {
         cell.classList.add("potion");
-        cell.textContent = "🧪";
+        cell.appendChild(createMapSprite("potion", "🧪"));
+        cell.setAttribute("aria-label", "Health potion");
       } else {
-        cell.textContent = "·";
+        cell.setAttribute("aria-label", `${terrain} tile`);
       }
 
       mapGridEl.appendChild(cell);
