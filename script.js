@@ -216,7 +216,7 @@ const shapes = [
 
 function buildCompositeQuestion(shapePool = shapes) {
   if (shapePool.length < 2) {
-    throw new Error("At least two shapes are required for a composite question.");
+    throw new Error("Internal error: insufficient shapes in pool for composite question generation.");
   }
 
   const idx1 = randomInt(0, shapePool.length - 1);
@@ -347,7 +347,8 @@ function getCookieValue(name) {
 
 function saveShapePreferences(shapeNames) {
   const value = encodeURIComponent(JSON.stringify(shapeNames));
-  document.cookie = `${SHAPE_PREFS_COOKIE}=${value}; max-age=31536000; path=/; samesite=lax`;
+  const secureSuffix = window.location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${SHAPE_PREFS_COOKIE}=${value}; max-age=31536000; path=/; samesite=lax${secureSuffix}`;
 }
 
 function loadShapePreferences() {
