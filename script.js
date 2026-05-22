@@ -339,6 +339,10 @@ function calculateLevel(totalPoints) {
   return Math.floor(totalPoints / LEVEL_POINT_STEP) + 1;
 }
 
+function getAllShapeNames() {
+  return shapes.map((shape) => shape.name);
+}
+
 function getCookieValue(name) {
   const cookieParts = document.cookie.split(";").map((part) => part.trim());
   const target = cookieParts.find((part) => part.startsWith(`${name}=`));
@@ -354,20 +358,20 @@ function saveShapePreferences(shapeNames) {
 function loadShapePreferences() {
   const raw = getCookieValue(SHAPE_PREFS_COOKIE);
   if (!raw) {
-    return new Set(shapes.map((shape) => shape.name));
+    return new Set(getAllShapeNames());
   }
 
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) {
-      return new Set(shapes.map((shape) => shape.name));
+      return new Set(getAllShapeNames());
     }
 
-    const validNames = new Set(shapes.map((shape) => shape.name));
+    const validNames = new Set(getAllShapeNames());
     const selected = parsed.filter((name) => validNames.has(name));
     return new Set(selected.length > 0 ? selected : Array.from(validNames));
   } catch (error) {
-    return new Set(shapes.map((shape) => shape.name));
+    return new Set(getAllShapeNames());
   }
 }
 
