@@ -24,6 +24,7 @@ const POTION_HEAL_AMOUNT = 30;
 const CORRECT_ANSWER_HEAL_AMOUNT = 10;
 const WRONG_ANSWER_DAMAGE = 25;
 const DIAGRAM_PROBABILITY = 1;
+const COOKIE_MAX_AGE_SECONDS = 31536000;
 const SHAPE_PREFS_COOKIE = "surface_area_shape_prefs";
 
 function getInitialPlayerPos() {
@@ -216,7 +217,7 @@ const shapes = [
 
 function buildCompositeQuestion(shapePool = shapes) {
   if (shapePool.length < 2) {
-    throw new Error("Internal error: insufficient shapes in pool for composite question generation.");
+    throw new Error(`Composite question generation requires at least 2 shapes, but received ${shapePool.length}.`);
   }
 
   const idx1 = randomInt(0, shapePool.length - 1);
@@ -352,7 +353,7 @@ function getCookieValue(name) {
 function saveShapePreferences(shapeNames) {
   const value = encodeURIComponent(JSON.stringify(shapeNames));
   const secureSuffix = window.location.protocol === "https:" ? "; secure" : "";
-  document.cookie = `${SHAPE_PREFS_COOKIE}=${value}; max-age=31536000; path=/; samesite=lax${secureSuffix}`;
+  document.cookie = `${SHAPE_PREFS_COOKIE}=${value}; max-age=${COOKIE_MAX_AGE_SECONDS}; path=/; samesite=lax${secureSuffix}`;
 }
 
 function loadShapePreferences() {
